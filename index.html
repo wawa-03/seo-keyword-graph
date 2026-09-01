@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>关键词星图 · SEO 关系图谱（个人版 · 演示内核）</title>
+<style>
+:root{
+  --bg:#0B0E14;
+  --surface-1:#11151F;
+  --surface-2:#171C28;
+  --surface-3:#1F2533;
+  --border:#262D3D;
+  --border-soft:#1A2030;
+  --text:#E8EBF2;
+  --text-muted:#9AA3B5;
+  --text-faint:#626B7E;
+  --accent:#6E8BFF;
+  --accent-fg:#0B0E14;
+  --accent-soft:rgba(110,139,255,.14);
+  --warn:#FBBF24;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-pill:999px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --font:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --seed:#A78BFA; --upper:#60A5FA; --sibling:#2DD4BF; --lower:#FBBF24; --brand:#F472B6;
+  --panel-w:300px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;}
+#app{display:flex;flex-direction:column;height:100vh;}
+.topbar{height:60px;flex:0 0 60px;background:var(--surface-1);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 var(--sp-5);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand svg{width:30px;height:30px;}
+.brand .title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:.2px;}
+.brand .tag{font-size:10px;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius-pill);padding:2px 8px;margin-left:6px;background:var(--surface-2);}
+.topbar-right{display:flex;align-items:center;gap:var(--sp-3);}
+.search-box{display:flex;align-items:center;gap:8px;height:36px;width:240px;padding:0 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-pill);}
+.search-box input{background:transparent;border:none;outline:none;color:var(--text-muted);font-size:12px;width:100%;}
+.export-btn{display:flex;align-items:center;justify-content:center;height:36px;padding:0 16px;border-radius:var(--radius-pill);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);transition:all .15s;}
+.export-btn:hover{border-color:var(--accent);color:var(--accent);}
+.body{display:flex;flex:1;min-height:0;background:var(--bg);}
+.panel{width:var(--panel-w);flex:0 0 var(--panel-w);background:var(--surface-1);padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-4);overflow-y:auto;}
+.panel.left{border-right:1px solid var(--border);}
+.panel.right{border-left:1px solid var(--border);}
+.card{background:var(--surface-2);border:1px solid var(--border-soft);border-radius:var(--radius-lg);padding:var(--sp-4);}
+.card > .sec-title:first-child{margin-top:0;}
+.sec-title{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.4px;margin:var(--sp-3) 0 var(--sp-1);display:flex;align-items:center;gap:6px;}
+.sec-title::before{content:'';width:3px;height:11px;border-radius:2px;background:var(--accent);opacity:.7;}
+.tabs{display:flex;height:36px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:4px;gap:4px;}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);font-size:12px;font-weight:500;color:var(--text-muted);cursor:pointer;border:none;background:transparent;transition:all .15s;}
+.tab.active{background:var(--accent);color:var(--accent-fg);}
+.seed-box{display:flex;align-items:center;height:42px;padding:0 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);transition:border-color .15s;}
+.seed-box:focus-within{border-color:var(--accent);}
+.seed-box input{background:transparent;border:none;outline:none;color:var(--text);font-size:14px;font-weight:500;width:100%;}
+.row{display:flex;align-items:center;gap:10px;}
+.toggle{width:38px;height:22px;border-radius:var(--radius-pill);background:var(--border);position:relative;flex:0 0 38px;cursor:pointer;transition:background .15s;}
+.toggle:not(.off){background:var(--accent);}
+.toggle.off{background:var(--border);}
+.toggle .knob{position:absolute;top:3px;left:19px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.toggle.off .knob{left:3px;}
+.row label{font-size:13px;color:var(--text);cursor:pointer;}
+.article-box{width:100%;min-height:88px;height:88px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;color:var(--text-muted);font-size:12px;line-height:18px;resize:none;outline:none;font-family:inherit;transition:border-color .15s;}
+.article-box:focus{border-color:var(--accent);}
+.slider-track{position:relative;width:100%;height:6px;border-radius:var(--radius-pill);background:var(--border);}
+.slider-fill{position:absolute;top:0;left:0;height:6px;border-radius:var(--radius-pill);background:var(--accent);}
+.slider-thumb{position:absolute;top:-5px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--accent);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.slider-val{font-size:11px;color:var(--text-muted);margin-top:6px;}
+.generate-btn{height:46px;border-radius:var(--radius-md);background:var(--accent);color:var(--accent-fg);font-size:14px;font-weight:600;cursor:pointer;border:none;width:100%;box-shadow:0 6px 20px rgba(110,139,255,.35);transition:transform .12s,box-shadow .15s,filter .15s;}
+.generate-btn:hover{transform:translateY(-1px);box-shadow:0 8px 26px rgba(110,139,255,.45);}
+.generate-btn:active{transform:translateY(0);}
+.graph-area{flex:1;min-width:0;position:relative;background:radial-gradient(120% 120% at 50% 0%, #0E1320 0%, var(--bg) 60%);overflow:hidden;}
+#stage{width:100%;height:100%;display:block;}
+.graph-hint{position:absolute;left:50%;top:18px;transform:translateX(-50%);font-size:11px;color:var(--text-muted);opacity:.65;pointer-events:none;background:rgba(11,14,20,.4);padding:4px 12px;border-radius:var(--radius-pill);backdrop-filter:blur(4px);}
+.legend{position:absolute;left:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;background:rgba(17,21,31,.78);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;backdrop-filter:blur(8px);box-shadow:var(--shadow);}
+.legend .item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);}
+.legend .dot{width:9px;height:9px;border-radius:50%;}
+.legend.rel{left:auto;right:16px;}
+.legend .line{width:16px;height:0;border-top-width:2px;border-top-style:solid;}
+.comm-block{margin-bottom:12px;}
+.comm-head{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-bottom:6px;}
+.comm-dot{width:8px;height:8px;border-radius:50%;}
+.comm-chip{font-size:11px;padding:3px 8px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);color:var(--text);}
+.select-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:12px;}
+.select-card .kw{font-size:18px;font-weight:700;color:var(--text);}
+.select-card .meta{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{font-size:11px;padding:3px 9px;border-radius:var(--radius-sm);background:var(--surface-3);color:var(--text-muted);}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.metric{background:var(--surface-2);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:10px 12px;}
+.metric .k{font-size:10px;color:var(--text-muted);}
+.metric .v{font-size:15px;font-weight:700;margin-top:3px;color:var(--text);}
+.metric .est{font-size:9px;color:var(--warn);margin-left:4px;}
+.neigh{display:flex;flex-wrap:wrap;gap:6px;}
+.neigh .tag{font-size:11px;padding:4px 9px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid var(--border);color:var(--text);background:var(--surface-2);transition:all .15s;}
+.neigh .tag:hover{background:var(--surface-3);border-color:var(--accent);color:var(--accent);}
+.rank-list{display:flex;flex-direction:column;gap:8px;}
+.rank-item{display:flex;align-items:center;gap:8px;font-size:12px;}
+.rank-item .bar{flex:1;height:6px;border-radius:var(--radius-pill);background:var(--surface-3);overflow:hidden;}
+.rank-item .bar>span{display:block;height:100%;border-radius:var(--radius-pill);}
+.rank-item .num{width:34px;text-align:right;color:var(--text-muted);font-size:11px;}
+.rank-item .nm{width:74px;color:var(--text);}
+.empty{font-size:12px;color:var(--text-muted);line-height:1.6;}
+.note{font-size:10px;color:var(--text-muted);line-height:1.6;opacity:.85;}
+.warn{color:var(--warn);font-weight:600;}
+.upload-box{background:var(--surface-2);border:1px dashed var(--border);border-radius:var(--radius-md);padding:16px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;transition:all .15s;}
+.upload-box.drag{border-color:var(--accent);background:var(--accent-soft);}
+.upload-btn{height:38px;padding:0 16px;border-radius:var(--radius-md);background:var(--surface-3);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;width:100%;transition:all .15s;}
+.upload-btn:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.csv-ex{font-size:10px;color:var(--text-muted);line-height:1.5;opacity:.85;white-space:pre;background:rgba(0,0,0,.25);border-radius:var(--radius-sm);padding:8px;font-family:ui-monospace,monospace;}
+.topbar-right .cmp-btn{height:36px;padding:0 14px;border-radius:var(--radius-pill);background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;}
+.topbar-right .cmp-btn.active{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);}
+.cmp-seed-wrap{display:none;}
+.cmp-seed-wrap.show{display:block;}
+.seed-box.cmp{margin:8px 0 6px;}
+.reveal-btn{position:absolute;right:16px;top:16px;height:34px;padding:0 14px;border-radius:var(--radius-pill);background:rgba(17,21,31,.78);border:1px solid var(--border);color:var(--text-muted);font-size:11px;cursor:pointer;backdrop-filter:blur(8px);transition:all .15s;}
+.reveal-btn:hover{border-color:var(--accent);color:var(--text);}
+.focus-bar{display:flex;gap:6px;margin-top:12px;}
+.focus-bar button{flex:1;height:30px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:11px;cursor:pointer;transition:all .15s;}
+.focus-bar button.active{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);}
+.legend.cmp{left:16px;bottom:16px;display:none;}
+.legend.cmp.show{display:flex;}
+.legend.base.hidden{display:none;}
+.sig-import{display:flex;flex-direction:column;gap:10px;}
+.sig-import .import-row{display:flex;gap:8px;align-items:center;}
+.sig-import .upload-btn{flex:1;height:34px;padding:0 12px;font-size:12px;}
+.sig-status{font-size:10px;color:var(--text-muted);line-height:1.6;opacity:.9;}
+.sig-badge{position:absolute;width:10px;height:10px;border-radius:50%;border:1.5px solid var(--bg);right:-3px;top:-3px;}
+.sig-badge.green{background:#2ECC71;}
+.sig-badge.yellow{background:#FBBF24;}
+.sig-badge.red{background:#E74C3C;}
+.sig-block{border-top:1px dashed var(--border);padding-top:12px;margin-top:4px;display:flex;flex-direction:column;gap:8px;}
+.sig-block .sig-title{font-size:11px;font-weight:600;color:#2ECC71;letter-spacing:.4px;}
+.sig-block .sig-platforms{display:flex;flex-wrap:wrap;gap:6px;}
+.sig-block .sig-pf{font-size:10px;padding:2px 7px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);color:var(--text);}
+.sig-block .sig-verdict{font-size:11px;line-height:1.6;color:var(--text-muted);}
+.sig-block .sig-verdict b{color:var(--text);}
+.sig-dot-inline{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.sig-dot-inline.green{background:#2ECC71;}
+.sig-dot-inline.yellow{background:#FBBF24;}
+.sig-dot-inline.red{background:#E74C3C;}
+.sig-view{margin-top:10px;border-top:1px solid var(--border);padding-top:10px;}
+.sig-view .sec-title{font-size:11px;color:var(--text);font-weight:600;margin-bottom:4px;letter-spacing:.3px;}
+.vf-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:5px 0;}
+.vf-label{font-size:11px;color:var(--text-muted);min-width:28px;}
+.vf-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text);cursor:pointer;background:var(--surface-2);padding:3px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);}
+.vf-dot{width:8px;height:8px;border-radius:50%;}
+.vf-dot.green{background:#2ECC71;} .vf-dot.yellow{background:#FBBF24;} .vf-dot.red{background:#E74C3C;}
+.vf-list{display:flex;flex-direction:column;gap:5px;max-height:190px;overflow:auto;margin-top:4px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;}
+.vf-item{display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 5px;border-radius:var(--radius-sm);cursor:pointer;}
+.vf-item:hover{background:var(--surface-2);}
+.vf-kw{color:var(--text);min-width:70px;font-weight:500;}
+.vf-pf{color:var(--text-muted);font-size:10px;}
+.legend .sig-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);}
+.trend-up{fill:#34D399;} .trend-down{fill:#F87171;} .trend-new{fill:#A78BFA;}
+.topic-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid transparent;cursor:pointer;font-size:12px;margin-bottom:6px;transition:all .15s;}
+.topic-item:hover{background:var(--surface-3);border-color:var(--accent);}
+.prio{font-size:10px;font-weight:700;padding:2px 6px;border-radius:var(--radius-sm);}
+.prio.p0{background:#FBBF24;color:#0B0E14;}
+.prio.p1{background:#F472B6;color:#0B0E14;}
+.prio.p2{background:var(--surface-3);color:var(--text-muted);}
+.outline-pre{font-size:11px;line-height:1.65;color:var(--text-muted);background:rgba(0,0,0,.25);border-radius:var(--radius-sm);padding:10px;white-space:pre-wrap;font-family:ui-monospace,monospace;max-height:190px;overflow-y:auto;}
+.copy-btn{height:28px;padding:0 12px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:11px;cursor:pointer;margin-top:8px;transition:all .15s;}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+.link-item{display:flex;flex-direction:column;gap:4px;padding:9px 10px;border-radius:var(--radius-sm);background:var(--surface-2);font-size:11px;margin-bottom:8px;}
+.link-item .rt{color:var(--text-muted);line-height:1.4;}
+.tdk-label{font-size:10px;color:var(--text-muted);margin:10px 0 5px;font-weight:600;letter-spacing:.4px;}
+.tdk-title{font-size:12px;color:var(--text);padding:6px 0;border-bottom:1px dashed var(--border);}
+.tdk-desc{font-size:11px;color:var(--text-muted);line-height:1.55;background:rgba(0,0,0,.25);border-radius:var(--radius-sm);padding:10px;}
+.scene-input{width:100%;height:34px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:0 12px;color:var(--text);font-size:11px;outline:none;transition:border-color .15s;}
+.scene-input:focus{border-color:var(--accent);}
+.export-row{display:flex;gap:8px;}
+.export-row button{flex:1;height:32px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:11px;cursor:pointer;transition:all .15s;}
+.export-row button:hover{border-color:var(--accent);color:var(--accent);}
+.panel.right .rtab{display:flex;flex-direction:column;gap:var(--sp-2);}
+.panel.right .sec-title{margin:var(--sp-4) 0 var(--sp-2);}
+.panel.right .rtab > .sec-title:first-child{margin-top:0;}
+.details{background:var(--surface-2);border:1px solid var(--border-soft);border-radius:var(--radius-lg);overflow:hidden;}
+.details > summary{list-style:none;cursor:pointer;padding:var(--sp-4);font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.4px;display:flex;align-items:center;gap:6px;}
+.details > summary::-webkit-details-marker{display:none;}
+.details > summary::before{content:'';width:3px;height:11px;border-radius:2px;background:var(--accent);opacity:.7;}
+.details[open] > summary{border-bottom:1px solid var(--border-soft);}
+.details-body{padding:0 var(--sp-4) var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3);}
+.node{animation:nodeIn .5s cubic-bezier(.2,.7,.3,1) both;cursor:pointer;}
+@keyframes nodeIn{from{opacity:0}to{opacity:1}}
+#stage .edge{animation:edgeIn .6s ease both;}
+@keyframes edgeIn{from{opacity:0}to{opacity:1}}
+.node circle,.node text{transition:opacity .35s ease;}
+.node:hover circle{stroke-opacity:.95;}
+.node.selected circle{stroke:var(--accent);stroke-opacity:1;stroke-width:2.5;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="8" r="3" fill="#A78BFA"/><circle cx="7" cy="19" r="3" fill="#2DD4BF"/><circle cx="21" cy="19" r="3" fill="#FBBF24"/><line x1="14" y1="8" x2="7" y2="19" stroke="#A78BFA" stroke-opacity="0.6"/><line x1="14" y1="8" x2="21" y2="19" stroke="#A78BFA" stroke-opacity="0.6"/></svg>
+      <span class="title">关键词星图 · SEO 关系图谱</span><span class="tag">个人版</span>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#8B95B0" stroke-width="1.5"/><path d="M11 11L14 14" stroke="#8B95B0" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input id="search" placeholder="搜索关键词 / 命令…" />
+      </div>
+      <button class="cmp-btn" id="cmpBtn">对比模式</button>
+      <button class="export-btn" id="export">导出图谱</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="panel left">
+  <div class="card">
+    <div class="sec-title">快速开始</div>
+    <div class="note">① 改「种子词」或贴文章 → ② 点底部「生成关键词地图」→ ③ 点节点看指标与右侧「产出」。<b class="warn">指标均为演示估算，非真实搜索量。</b></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">数据来源</div>
+    <div class="tabs" id="srcTabs">
+      <button class="tab active" data-src="article">文章</button>
+      <button class="tab" data-src="db">数据库</button>
+    </div>
+    <div class="sec-title">种子词 / 品类</div>
+    <div class="seed-box"><input id="seed" value="美妆" /></div>
+    <div class="cmp-seed-wrap" id="cmpSeedWrap">
+      <div class="sec-title">对比种子词</div>
+      <div class="seed-box cmp"><input id="seedB" value="护肤" /></div>
+      <div class="note">对比模式：同时计算两词，按归属着色（蓝=仅 A · 紫=交集 · 橙=仅 B）。</div>
+    </div>
+    <div class="sec-title">扩展方向</div>
+    <div class="row"><div class="toggle" id="up"><div class="knob"></div></div><label>向上延展 · 上位品类词</label></div>
+    <div class="row"><div class="toggle" id="down"><div class="knob"></div></div><label>向下延展 · 下位长尾词</label></div>
+    <div class="row"><div class="toggle" id="comm"><div class="knob"></div></div><label>按社群着色 · 主题簇</label></div>
+    <div class="row"><div class="toggle" id="brandPick"><div class="knob"></div></div><label>竞品拦截 · 品牌词入选选题</label></div>
+    <div id="panel-article">
+      <div class="sec-title">文章输入（粘贴正文）</div>
+      <textarea class="article-box" id="article" placeholder="粘贴文章正文…">口红是美妆里复购最高的品类。平价口红和哑光唇釉在小红书很火，Mac口红、完美日记、雅诗兰黛、欧莱雅都在抢这个市场。彩妆和护肤带动粉底液、精华、爽肤水的搜索，干皮粉底的需求也在涨。国货品牌花西子、橘朵也起来了。</textarea>
+    </div>
+    <div id="panel-db" style="display:none">
+      <div class="sec-title">上传关键词库（CSV / TSV / TXT）</div>
+      <div class="upload-box" id="uploadBox">
+        <input type="file" id="file" accept=".csv,.tsv,.txt" hidden />
+        <button class="upload-btn" id="pickBtn">＋ 选择文件 / 拖拽到此处</button>
+        <div class="note">列头自动识别：关键词(必需) · 搜索量 · 竞争度 · CPC · 频次 · 关联词。两列无表头 CSV 视为「词A,词B」共现对。</div>
+      </div>
+      <div class="sec-title">或粘贴 CSV 文本</div>
+      <textarea class="article-box" id="csvText" placeholder="关键词,搜索量,竞争度,CPC&#10;口红,45000,62,3.2&#10;平价口红,9000,40,1.8"></textarea>
+      <div class="sec-title">已解析</div>
+      <div class="note" id="dbStat">尚未上传 / 解析。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">筛选与修饰</div>
+    <div class="row"><div class="toggle" id="stop"><div class="knob"></div></div><label>过滤停用词（你 / 我 / 他 / 的 …）</label></div>
+    <div class="sec-title">低频词阈值（按词频）</div>
+    <div class="slider-track" id="slider"><div class="slider-fill" id="sliderFill"></div><div class="slider-thumb" id="sliderThumb"></div></div>
+    <div class="slider-val" id="sliderVal">词频 &lt; 1 自动隐藏</div>
+    <div class="sec-title">TDK 场景修饰词（逗号分隔）</div>
+    <input class="scene-input" id="sceneWords" value="评测,推荐,攻略,避坑,对比,排行榜,平价,高端" />
+  </div>
+
+  <details class="details">
+    <summary>真实信号层 · 导入你的数据，自选视图</summary>
+    <div class="details-body">
+      <div class="sig-import">
+        <div class="import-row">
+          <button class="upload-btn" id="sigLoad">加载示例数据 (19词)</button>
+          <button class="upload-btn" id="sigClear" style="flex:0 0 auto">清除</button>
+        </div>
+        <textarea class="article-box" id="sigText" placeholder="粘贴你自己的真实信号 CSV：关键词,平台,热度,备注&#10;平价口红,知乎/微博/B站/淘宝/京东,可信,UGC&gt;电商&#10;Mac口红,官网,歧义,Apple混淆"></textarea>
+        <div class="note" id="sigStatus">未导入数据。粘贴你自己的 CSV，或点「加载示例数据」后按「生成关键词地图」。</div>
+        <div class="note">列：关键词 · 平台（/ 分隔）· 热度（可信/需复核/歧义/无数据）· 备注。加载后节点右上角出现角标：<span class="sig-dot-inline green"></span>可信 <span class="sig-dot-inline yellow"></span>需复核 <span class="sig-dot-inline red"></span>需核验。<b class="warn">（示例仅覆盖平价口红，建议粘贴你自己的数据。）</b></div>
+        <div class="sig-view" id="sigViewPanel" style="display:none"></div>
+      </div>
+    </div>
+  </details>
+
+  <button class="generate-btn" id="generate">生成关键词地图</button>
+  <div class="note footnote">演示内核：新增业务闭环（选题清单 P0/P1/P2 · 内容大纲 · 内链建议 · TDK · CSV/JSON/MD 导出）。分词/层级/SEO 指标为演示估算，<b class="warn">非真实搜索量</b>；生产需接 jieba + 真实 API（5118 / 百度指数 / Keyword Planner）。</div>
+</div>    <div class="graph-area">
+      <svg id="stage"></svg>
+      <div class="graph-hint">拖拽重组 · 点击看指标 · 节点大小 = 机会分 · 右侧「产出」一键生成 选题 / 大纲 / TDK</div>
+      <div class="legend base" id="baseLegend">
+        <div class="item"><span class="dot" style="background:#A78BFA"></span>种子词</div>
+        <div class="item"><span class="dot" style="background:#60A5FA"></span>上位品类词</div>
+        <div class="item"><span class="dot" style="background:#FBBF24"></span>下位长尾词</div>
+        <div class="item"><span class="dot" style="background:#F472B6"></span>品牌词</div>
+        <div class="item"><span class="dot" style="background:#2DD4BF"></span>相关词</div>
+      </div>
+      <div class="legend rel">
+        <div class="item"><span class="line" style="border-top-color:#60A5FA;border-top-style:dashed"></span>上位</div>
+        <div class="item"><span class="line" style="border-top-color:#FBBF24"></span>下位</div>
+        <div class="item"><span class="line" style="border-top-color:#F472B6"></span>品牌/竞品</div>
+        <div class="item"><span class="line" style="border-top-color:#2DD4BF;border-top-style:dotted"></span>同义</div>
+        <div class="item"><span class="line" style="border-top-color:#FFFFFF;opacity:.3"></span>相关</div>
+      </div>
+      <button class="reveal-btn" id="reveal">▶ 浮现回放</button>
+      <div class="legend cmp" id="cmpLegend">
+        <div class="item"><span class="dot" style="background:#60A5FA"></span>仅 A（种子词 1）</div>
+        <div class="item"><span class="dot" style="background:#A78BFA"></span>交集</div>
+        <div class="item"><span class="dot" style="background:#FBBF24"></span>仅 B（种子词 2）</div>
+      </div>
+    </div>
+
+    <div class="panel right">
+      <div class="sec-title">右侧面板</div>
+      <div class="tabs" id="rightTabs">
+        <button class="tab active" data-rtab="detail">详情</button>
+        <button class="tab" data-rtab="comm">簇</button>
+        <button class="tab" data-rtab="output">产出</button>
+      </div>
+      <div class="rtab" id="rtab-detail">
+        <div class="sec-title">选中词详情</div>
+        <div class="select-card" id="detail"><div class="empty">点击图谱中任意节点，查看搜索量 / 竞争度 / 商业价值 / 机会分。</div></div>
+        <div class="sec-title">机会分词榜（SEO 价值排序）</div>
+        <div class="rank-list" id="rank"></div>
+      </div>
+      <div class="rtab" id="rtab-comm" style="display:none">
+        <div class="sec-title">主题簇（社群发现）</div>
+        <div id="communities"><div class="empty">生成后自动聚成主题簇。</div></div>
+      </div>
+      <div class="rtab" id="rtab-output" style="display:none">
+        <div class="sec-title">选题清单 · 机会分 ≥ 50</div>
+        <div id="topicList"><div class="empty">生成图谱后自动列出可写选题（P0 优先）。</div></div>
+        <div class="sec-title">内容大纲（点击选题词生成）</div>
+        <div id="outline"><div class="empty">点选题清单里的词，自动生成 H1/H2/H3 大纲。</div></div>
+        <div class="sec-title">内链建议</div>
+        <div id="linkSuggest"><div class="empty">生成图谱后给出「哪篇链哪篇」建议。</div></div>
+        <div class="sec-title">TDK 速览</div>
+        <div id="tdk"><div class="empty">选中词后生成标题 / 描述 / 关键词。</div></div>
+        <div class="sec-title">导出产出</div>
+        <div class="export-row">
+          <button id="expCSV">选题 CSV</button>
+          <button id="expJSON">数据 JSON</button>
+          <button id="expMD">复制大纲</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   业务内核 KeywordEngine v1（演示级）
+   生产环境替换点：segment() -> jieba；seoMetric() -> 真实 API
+   ========================================================= */
+
+/* ---------- S3 支撑数据：类目树 / 品牌表 / 停用词 ---------- */
+const CATEGORY_TREE = {
+  '美妆':['护肤','彩妆','香水','美发','美甲','个护','日化'],
+  '护肤':['精华','爽肤水','面霜','乳液','洁面','眼霜'],
+  '彩妆':['口红','眼影','粉底液','腮红','睫毛膏','唇釉'],
+  '香水':['淡香水','浓香水'],
+};
+const BRANDS = new Set(['Mac口红','完美日记','雅诗兰黛','欧莱雅','兰蔻','YSL','花西子','橘朵']);
+const EXTRA_DICT = ['平价','哑光','干皮','小众','国货','小红书','复购','搜索','市场','需求','品类','趋势','竞争','用户','口碑'];
+// 行业停用词（P4）：通用 + 噪声动词性词
+const STOPWORDS = new Set(['的','了','是','在','我','你','他','她','它','们','和','与','或','也','都','很','就','而','及','之','这','那','这个','那个','什么','怎么','如何','上','下','中','为','对','从','到','把','被','让','给','会','能','要','有','没','不','一个','一种','一款','因为','所以','但','却','其','其中','以及','即可','可以','通过','推荐','分享','一篇','盘点','测评','来说','其实','一直','现在','已经','可能','应该','觉得','表示','认为','告诉','看到','关于','进行','成为','作为','对于','由于']);
+
+/* 汇总词典（S1 前向最大匹配用） */
+const DICT = (()=>{ const s=new Set(); Object.keys(CATEGORY_TREE).forEach(k=>s.add(k)); Object.values(CATEGORY_TREE).forEach(arr=>arr.forEach(w=>s.add(w))); BRANDS.forEach(b=>s.add(b)); EXTRA_DICT.forEach(w=>s.add(w)); return s; })();
+const MAX_WORD = 6;
+
+/* ---------- S1 分词：前向最大匹配 + 新词回退 ---------- */
+function segment(text){
+  const tokens=[]; const n=text.length; let i=0;
+  while(i<n){
+    let matched=null;
+    for(let len=Math.min(MAX_WORD,n-i); len>=2; len--){
+      const sub=text.substr(i,len);
+      if(DICT.has(sub)){ matched=sub; break; }
+    }
+    if(matched){ tokens.push(matched); i+=matched.length; }
+    else { i++; }  // 跳过未登录词，避免 2-gram 噪声（里复/个市/动粉…）
+  }
+  return tokens;
+}
+
+/* ---------- S2 词频 + 共现 + PMI ---------- */
+function analyze(text, seed){
+  const tokens=segment(text);
+  const freq={};
+  tokens.forEach(t=>{ if(!STOPWORDS.has(t)) freq[t]=(freq[t]||0)+1; });
+  // 句内共现
+  const sentences=text.split(/[。！？；\n]/);
+  const cooc={}; // "a|b" -> count
+  let pairTotal=0;
+  sentences.forEach(s=>{
+    const found=[...new Set(segment(s).filter(t=>!STOPWORDS.has(t)))];
+    for(let a=0;a<found.length;a++)for(let b=a+1;b<found.length;b++){
+      const key=[found[a],found[b]].sort().join('|');
+      cooc[key]=(cooc[key]||0)+1; pairTotal++;
+    }
+  });
+  const N=tokens.length||1;
+  const pmi=(a,b)=>{
+    const key=[a,b].sort().join('|'); const c=cooc[key]||0;
+    if(c===0) return 0;
+    const pa=(freq[a]||0)/N, pb=(freq[b]||0)/N, pab=c/pairTotal;
+    return Math.log2(pab/(pa*pb+1e-9));
+  };
+  return {freq, cooc, pmi, pairTotal};
+}
+
+/* ---------- S3 层级推理 ---------- */
+function inferLayer(seed, w){
+  if(w===seed) return 'seed';
+  if(BRANDS.has(w)) return 'brand';
+  const tree=CATEGORY_TREE;
+  if(tree[seed] && tree[seed].includes(w)) return 'lower';
+  if(tree[w] && tree[w].includes(seed)) return 'upper';
+  const lowers=tree[seed]||[];
+  if(lowers.some(c=>w.includes(c) && c.length>=2)) return 'lower';
+  if(w.includes(seed) && w!==seed) return 'lower';
+  if(seed.includes(w) && w!==seed) return 'upper';
+  return 'sibling';
+}
+
+/* ---------- S4 SEO 指标：示例源 + 估算 ---------- */
+// 示例数据源（真实环境替换为 5118 / 百度指数 / Keyword Planner）
+const SEO_SOURCE = {
+  '口红':{v:45000,kd:62,cpc:3.2}, '彩妆':{v:60000,kd:55,cpc:2.8}, '护肤':{v:80000,kd:58,cpc:3.5},
+  '粉底液':{v:22000,kd:50,cpc:2.5}, '精华':{v:30000,kd:52,cpc:3.0}, '爽肤水':{v:18000,kd:48,cpc:2.2},
+  '眼影':{v:16000,kd:46,cpc:2.1}, '美妆':{v:120000,kd:65,cpc:4.0}, '平价口红':{v:9000,kd:40,cpc:1.8},
+  '哑光唇釉':{v:7000,kd:42,cpc:1.9}, '干皮粉底':{v:5000,kd:44,cpc:2.0}, '完美日记':{v:25000,kd:45,cpc:2.6},
+  '雅诗兰黛':{v:20000,kd:60,cpc:3.4}, '欧莱雅':{v:28000,kd:50,cpc:2.7}, 'Mac口红':{v:15000,kd:55,cpc:3.1},
+  '花西子':{v:12000,kd:48,cpc:2.4}, '橘朵':{v:6000,kd:43,cpc:1.7}, '小红书':{v:90000,kd:30,cpc:1.5},
+};
+
+/* =========================================================
+   真实信号层（L1 升级 · 业务内核 v6）
+   来源：2026-08-22 真实数据验证报告（agent-reach 研究方法 + 本机联网检索 Bing 取证）
+   热度分级：green=可信 / yellow=需复核 / red=需核验 / 无记录=未验证
+   ========================================================= */
+/* 2026-08-22 真实采集（agent 全网检索 pilot）— 平价口红集群，全部基于公开讨论，非估算 */
+const BUILTIN_SIGNALS = {
+  '平价口红': {platforms:['小红书','抖音','知乎','电商'], heat:'green', note:'2026 高热；国货+韩系百元内主角，多平台真实讨论。'},
+  '哑光唇釉': {platforms:['小红书','抖音','电商'], heat:'green', note:'2026 柔雾/雾面趋势，不拔干为核心卖点。'},
+  '口红':     {platforms:['小红书','知乎','电商','媒体'], heat:'green', note:'美妆复购最高品类，多平台高热。'},
+  '彩妆':     {platforms:['小红书','知乎','电商'], heat:'green', note:'含唇部赛道，2026 讨论集中。'},
+  '护肤':     {platforms:['知乎','媒体','百科'], heat:'green', note:'带动彩妆关联，权威媒体+UGC。'},
+  '完美日记': {platforms:['小红书','电商','知乎'], heat:'green', note:'870 豆沙棕，配方升级回归口碑。'},
+  '花西子':   {platforms:['知乎','电商'], heat:'green', note:'国货口碑回升，黄皮显白色号优化。'},
+  '橘朵':     {platforms:['小红书','电商','知乎'], heat:'green', note:'国货性价比，09 樱桃红 / P03 乌龙奶棕。'},
+  '蜜丝婷':   {platforms:['小红书','电商'], heat:'green', note:'水光+哑光双线，2026 爆款色号多（#04/#06/#216）。'},
+  'Colorkey': {platforms:['小红书','电商'], heat:'green', note:'B705 树莓冻小红书常年爆款。'},
+  'INTO YOU': {platforms:['小红书','电商'], heat:'green', note:'EM05 浅茶杏唇泥全网爆卖。'},
+  'Rom&nd':   {platforms:['小红书','抖音'], heat:'green', note:'#08 无花果奶茶韩系霸榜。'},
+  '3CE':      {platforms:['小红书','抖音'], heat:'green', note:'柔雾唇釉，黑莓色趋势。'},
+  'KIKO':     {platforms:['电商','知乎'], heat:'green', note:'#103 不沾杯豆沙，开架标杆。'},
+  '唇泥':     {platforms:['小红书','电商'], heat:'green', note:'INTO YOU 开创，伪素颜氛围感首选。'},
+  '不沾杯':   {platforms:['小红书','电商'], heat:'green', note:'双头/雨衣锁色成核心卖点。'},
+  '奶咖色':   {platforms:['小红书','抖音'], heat:'green', note:'2026 摩卡慕斯流行调。'},
+  '伪素颜':   {platforms:['小红书','抖音'], heat:'green', note:'低饱和温柔妆效高频词。'},
+  'Mac口红':  {platforms:['官网','电商'], heat:'red', note:'关键词可能混入 Apple Mac 流量，需精确核验。'},
+};
+/* 用户可导入的真实信号（覆盖内置） */
+let userSignals = {};
+function loadBuiltinSignals(){
+  userSignals = {};
+  Object.keys(BUILTIN_SIGNALS).forEach(k=>{ userSignals[k] = Object.assign({}, BUILTIN_SIGNALS[k]); });
+  updateSigStatus('已载入示例 ' + Object.keys(userSignals).length + ' 词真实信号（2026-08-22 采集）。点击「生成关键词地图」后生效。');
+  initSigView(); renderSigView(); try{ render(); }catch(e){} applySigView();
+}
+function clearSignals(){
+  userSignals = {};
+  initSigView(); renderSigView();
+  updateSigStatus('已清除全部真实信号。');
+  if(typeof render==='function'){ try{ render(); }catch(e){} } applySigView();
+}
+function updateSigStatus(msg){ const el=document.getElementById('sigStatus'); if(el) el.textContent=msg; }
+function parseSignals(text){
+  const map={};
+  text.split(/\r?\n/).forEach(line=>{
+    line=line.trim(); if(!line || line.startsWith('关键词') || line.startsWith('#')) return;
+    const parts=line.split(/[,，\t]/).map(s=>s.trim());
+    if(parts.length<1 || !parts[0]) return;
+    const kw=parts[0];
+    const rawHeat=(parts[2]||'').toLowerCase();
+    let heat='green';
+    if(/需复|待核|yellow|y/.test(rawHeat)) heat='yellow';
+    else if(/歧义|需核验|red|r|无法/.test(rawHeat)) heat='red';
+    const platforms=(parts[1]||'').split(/[\/、|]/).map(s=>s.trim()).filter(Boolean);
+    map[kw]={platforms, heat, note:(parts[3]||'')};
+  });
+  return map;
+}
+function importSignalsFromText(){
+  const t=(document.getElementById('sigText').value||'').trim();
+  if(!t){ updateSigStatus('请先粘贴真实信号 CSV。'); return; }
+  const parsed=parseSignals(t);
+  const n=Object.keys(parsed).length;
+  if(!n){ updateSigStatus('未解析到有效数据，请检查格式。'); return; }
+  Object.keys(parsed).forEach(k=>{ userSignals[k]=parsed[k]; });
+  updateSigStatus('已导入 ' + n + ' 词真实信号（累计 ' + Object.keys(userSignals).length + ' 词）。点击「生成关键词地图」后生效。');
+  initSigView(); renderSigView(); try{ render(); }catch(e){} applySigView();
+}
+function signalOf(id){ return userSignals[id] || null; }
+/* ===== MVP：导入后自选数据视图 ===== */
+let sigView = { hidden:new Set(), heats:{green:true,yellow:true,red:true}, platforms:new Set() };
+function initSigView(){
+  const all=new Set();
+  Object.values(userSignals).forEach(s=>(s.platforms||[]).forEach(p=>all.add(p)));
+  sigView = { hidden:new Set(), heats:{green:true,yellow:true,red:true}, platforms:all };
+}
+function visibleSignal(id){
+  const s=userSignals[id]; if(!s) return null;
+  if(sigView.hidden.has(id)) return null;
+  if(!sigView.heats[s.heat]) return null;
+  if(sigView.platforms.size>0 && !(s.platforms||[]).some(p=>sigView.platforms.has(p))) return null;
+  return s;
+}
+function applySigView(){
+  if(typeof graph==='undefined'||!graph||!graph.nodes) return;
+  graph.nodes.forEach(n=>{ if(n.sigEl) n.sigEl.style.display = visibleSignal(n.id)? '' : 'none'; });
+  const total=Object.keys(userSignals).length;
+  const shown=Object.keys(userSignals).filter(k=>visibleSignal(k)).length;
+  if(total) updateSigStatus('已导入 '+total+' 词真实信号，当前显示 '+shown+' 词（在下方「选用数据视图」调整）。');
+  if(selected) select(selected);
+}
+const HEAT_NAME={green:'可信',yellow:'需复核',red:'歧义'};
+function renderSigView(){
+  const panel=document.getElementById('sigViewPanel'); if(!panel) return;
+  const keys=Object.keys(userSignals);
+  if(!keys.length){ panel.style.display='none'; panel.innerHTML=''; return; }
+  panel.style.display='';
+  const pfs=[...sigView.platforms];
+  let h='<div class="sec-title">选用数据视图</div>';
+  h+='<div class="vf-row"><span class="vf-label">热度</span>'+
+     ['green','yellow','red'].map(hh=>`<label class="vf-chip"><input type="checkbox" data-heat="${hh}" ${sigView.heats[hh]?'checked':''}><span class="vf-dot ${hh}"></span>${HEAT_NAME[hh]}</label>`).join('')+'</div>';
+  if(pfs.length){
+    h+='<div class="vf-row"><span class="vf-label">平台</span>'+
+       pfs.map(p=>`<label class="vf-chip"><input type="checkbox" data-pf="${p}" ${sigView.platforms.has(p)?'checked':''}>${p}</label>`).join('')+'</div>';
+  }
+  h+='<div class="vf-label" style="margin-top:6px">逐项显隐（'+keys.length+' 项）</div>';
+  h+='<div class="vf-list">'+keys.map(k=>{const s=userSignals[k];return `<label class="vf-item"><input type="checkbox" data-kw="${k}" ${sigView.hidden.has(k)?'':'checked'}><span class="vf-dot ${s.heat}"></span><span class="vf-kw">${k}</span><span class="vf-pf">${(s.platforms||[]).join('/')||'—'}</span></label>`;}).join('')+'</div>';
+  panel.innerHTML=h;
+  panel.querySelectorAll('input[data-heat]').forEach(cb=>cb.addEventListener('change',()=>{ sigView.heats[cb.dataset.heat]=cb.checked; applySigView(); }));
+  panel.querySelectorAll('input[data-pf]').forEach(cb=>cb.addEventListener('change',()=>{ if(cb.checked)sigView.platforms.add(cb.dataset.pf); else sigView.platforms.delete(cb.dataset.pf); applySigView(); }));
+  panel.querySelectorAll('input[data-kw]').forEach(cb=>cb.addEventListener('change',()=>{ if(cb.checked)sigView.hidden.delete(cb.dataset.kw); else sigView.hidden.add(cb.dataset.kw); applySigView(); }));
+}
+function seoMetric(w, freq){
+  let src=SEO_SOURCE[w]; let est=false;
+  if(!src){ est=true; src={ v: freq*900+600, kd: Math.min(85, 28+freq*3.2), cpc: 0.6+freq*0.14 }; }
+  const v=src.v, kd=src.kd, cpc=src.cpc;
+  // 机会分 = (量/1000 × 商业价值) / (难度/100 + 0.1)，归一 0-100
+  const oppRaw = (v/1000 * cpc) / (kd/100 + 0.1);
+  const opp = Math.max(0, Math.min(100, Math.round(oppRaw*6)));
+  return {v, kd:Math.round(kd), cpc:+cpc.toFixed(2), opp, est};
+}
+
+/* ---------- S2 语义关系分类（共现 → 语义类型） ---------- */
+const SYNONYMS = {'唇膏':'口红','化妆':'彩妆','护肤品':'护肤','眼妆':'眼影','底妆':'粉底液','唇彩':'唇釉','彩妆盘':'眼影'};
+function synPair(a,b){ return SYNONYMS[a]===b || SYNONYMS[b]===a; }
+// 返回边类型：hyper 上位 / hypo 下位 / brand 品牌归属 / syn 同义 / comp 竞品 / rel 相关；null=丢弃
+function classifyEdge(seed, aId, bId, layerA, layerB, pmiVal){
+  if(aId===seed || bId===seed){
+    const ol = aId===seed ? layerB : layerA;
+    if(ol==='upper') return 'hyper';
+    if(ol==='lower') return 'hypo';
+    if(ol==='brand') return 'brand';
+    return 'rel';
+  }
+  if(layerA==='brand' && layerB==='brand') return 'comp';
+  if(synPair(aId,bId)) return 'syn';
+  if(pmiVal>0.3) return 'rel';
+  return null;
+}
+const EDGE_STYLE = {
+  hyper:{color:'#60A5FA', dash:'4 3', op:0.5, w:1.5},
+  hypo :{color:'#FBBF24', dash:null,  op:0.5, w:1.5},
+  brand:{color:'#F472B6', dash:null,  op:0.5, w:1.5},
+  syn :{color:'#2DD4BF', dash:'2 3',  op:0.6, w:1.2},
+  comp :{color:'#F472B6', dash:'5 3',  op:0.45,w:1.2},
+  rel :{color:'#FFFFFF', dash:null,  op:0.12,w:1},
+};
+const COMM_PALETTE=['#A78BFA','#60A5FA','#2DD4BF','#FBBF24','#F472B6','#34D399','#F97316','#38BDF8'];
+
+/* ---------- S5 组装「词-量-关系」三要素 ---------- */
+function buildFromArticle(text, seed){
+  const {freq, pmi} = analyze(text, seed);
+  const ids=Object.keys(freq);
+  const layerOf={}; ids.forEach(id=> layerOf[id]=inferLayer(seed,id));
+  const nodes=ids.map(id=>({
+    id, layer:layerOf[id], freq:freq[id], ...seoMetric(id, freq[id]), community:0
+  }));
+  // 关系：seed 锚定 + 共现 PMI，按语义分类
+  const edges=[]; const seen=new Set();
+  ids.forEach(a=>{
+    ids.forEach(b=>{
+      if(a>=b) return;
+      const t=classifyEdge(seed, a, b, layerOf[a], layerOf[b], pmi(a,b));
+      if(!t) return;
+      const key=[a,b].sort().join('|'); if(seen.has(key))return; seen.add(key);
+      edges.push({a, b, pmi:+pmi(a,b).toFixed(2), type:t});
+    });
+  });
+  return {nodes, edges};
+}
+
+/* ---------- 预置（带 SEO 指标的示例数据） ---------- */
+function buildPreset(seed){
+  const {nodes,edges}=buildFromArticle(document.getElementById('article').value, seed);
+  if(nodes.length<5){ // 兜底：用内置词典生成
+    const sample=['美妆','护肤','彩妆','口红','眼影','粉底液','精华','爽肤水','平价口红','哑光唇釉','干皮粉底','Mac口红','完美日记','雅诗兰黛','欧莱雅','花西子','橘朵','小红书'];
+    return {
+      nodes: sample.map(id=>({id, layer:inferLayer(seed,id), freq: sample.indexOf(id)+3, ...seoMetric(id, sample.indexOf(id)+3), community:0})),
+      edges: sample.filter(id=>id!==seed).map(id=>({a:seed,b:id,pmi:0,type: inferLayer(seed,id)==='upper'?'hyper':(inferLayer(seed,id)==='brand'?'brand':'hypo')}))
+    };
+  }
+  return {nodes,edges};
+}
+
+/* ---------- Step 3 数据接入：CSV / TSV / TXT 解析 ---------- */
+// 通用解析：自动识别分隔符(,、中文逗号、\t)与表头(关键词/搜索量/竞争度/CPC/频次/关联词)
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return {rows:[], headerMap:{kw:0}, hasHeader:false};
+  const sepOf=s=>{ if(s.includes('\t')) return '\t'; const en=(s.match(/,/g)||[]).length, cn=(s.match(/，/g)||[]).length; return en>=cn?',':'，'; };
+  const sep=sepOf(lines[0]);
+  const raw=lines.map(l=>l.split(sep).map(c=>c.trim()));
+  const head=raw[0].map(h=>h.toLowerCase());
+  const hit=(h,names)=>names.some(n=>h.includes(n));
+  const hasHeader=head.some(h=>hit(h,['关键词','搜索词','keyword','词','name','term'])||hit(h,['搜索量','volume','search'])||hit(h,['竞争','difficulty','kd']));
+  const idx=names=>{ for(let i=0;i<head.length;i++) if(hit(head[i],names)) return i; return -1; };
+  let headerMap;
+  if(hasHeader){
+    headerMap={kw:idx(['关键词','搜索词','keyword','词','name','term']),v:idx(['搜索量','月搜索','volume','search','v']),kd:idx(['竞争','难度','difficulty','kd']),cpc:idx(['cpc','商业','价值','出价']),freq:idx(['频次','频率','count','freq','出现']),rel:idx(['关联','相关','共现','co','link','related']),trend:idx(['趋势','trend','涨跌','方向','涨跌幅'])};
+    if(headerMap.kw<0) headerMap.kw=0;
+  } else headerMap={kw:0,v:1,kd:2,cpc:3,freq:-1,rel:-1};
+  return {rows:hasHeader?raw.slice(1):raw, headerMap, hasHeader};
+}
+// 把数据集文本组装成「词-量-关系」三要素（与文章路径同构）
+function buildFromDataset(text, seed){
+  const {rows, headerMap, hasHeader}=parseCSV(text);
+  if(!rows.length) return null;
+  const m=headerMap;
+  const nodeMap={}, edges=[];
+  const addNode=(id,inc)=>{ id=(id||'').trim(); if(!id||STOPWORDS.has(id))return; const r=nodeMap[id]||{freq:0,v:null,kd:null,cpc:null}; r.freq+=inc; nodeMap[id]=r; };
+  // 两列无表头 = 「词A,词B」共现对模式
+  const isPair=!hasHeader && rows[0] && rows[0].length>=2 && isNaN(+rows[0][1]);
+  if(isPair){
+    rows.forEach(r=>{ const a=(r[0]||'').trim(),b=(r[1]||'').trim(); if(!a||!b)return; addNode(a,1); addNode(b,1); if(a!==b)edges.push({a,b,type:'rel'}); });
+  } else {
+    rows.forEach(r=>{
+      const kw=(r[m.kw]||'').trim(); if(!kw||STOPWORDS.has(kw))return;
+      const rec=nodeMap[kw]||{freq:0,v:null,kd:null,cpc:null}; rec.freq+=1;
+      if(m.v>=0&&r[m.v]&&!isNaN(+r[m.v]))rec.v=+r[m.v];
+      if(m.kd>=0&&r[m.kd]&&!isNaN(+r[m.kd]))rec.kd=+r[m.kd];
+      if(m.cpc>=0&&r[m.cpc]&&!isNaN(+r[m.cpc]))rec.cpc=+r[m.cpc];
+      if(m.freq>=0&&r[m.freq]&&!isNaN(+r[m.freq]))rec.freq=Math.max(rec.freq,+r[m.freq]);
+      if(m.trend>=0&&r[m.trend]){ const tv=r[m.trend].trim().toLowerCase(); if(/升|涨|up|↑|增/.test(tv))rec.trend='up'; else if(/降|跌|down|↓|减/.test(tv))rec.trend='down'; else if(/新|new/.test(tv))rec.trend='new'; }
+      nodeMap[kw]=rec;
+      if(m.rel>=0&&r[m.rel]){ const rb=r[m.rel].trim(); if(rb&&rb!==kw){ addNode(rb,0); edges.push({a:kw,b:rb,type:'rel'}); } }
+    });
+    Object.keys(nodeMap).forEach(id=>{ if(id!==seed) edges.push({a:seed,b:id,type:'rel'}); });
+  }
+  const layerOf={};
+  const nodes=Object.keys(nodeMap).map(id=>{
+    const rec=nodeMap[id]; const layer=inferLayer(seed,id); layerOf[id]=layer;
+    let est=false,v=rec.v,kd=rec.kd,cpc=rec.cpc,opp=null;
+    if(v==null||kd==null||cpc==null){ const em=seoMetric(id,rec.freq); est=true; v=v==null?em.v:v; kd=kd==null?em.kd:kd; cpc=cpc==null?em.cpc:cpc; opp=em.opp; }
+    if(opp==null){ const o=(v/1000*cpc)/(kd/100+0.1); opp=Math.max(0,Math.min(100,Math.round(o*6))); }
+    return {id,layer,freq:rec.freq,v,kd:Math.round(kd),cpc:+cpc.toFixed(2),opp,est,community:0,trend:rec.trend||null};
+  });
+  const finEdges=[], seen=new Set();
+  edges.forEach(e=>{
+    const t=(e.a===seed||e.b===seed)?classifyEdge(seed,e.a,e.b,layerOf[e.a]||'sibling',layerOf[e.b]||'sibling',0.5):(e.type||'rel');
+    const key=[e.a,e.b].sort().join('|'); if(seen.has(key))return; seen.add(key); if(t)finEdges.push({a:e.a,b:e.b,pmi:0,type:t});
+  });
+  const withMetric=Object.values(nodeMap).filter(r=>r.v!=null).length;
+  return {nodes, edges:finEdges, stat:{total:nodes.length, withMetric}};
+}
+
+/* ---------- Step 4 对比模式：两种子词并集，按归属着色 ---------- */
+function buildFromText(src, seed){
+  if(src==='article') return buildFromArticle(document.getElementById('article').value, seed);
+  const t=(document.getElementById('csvText').value||'').trim();
+  const d=buildFromDataset(t, seed);
+  return d || buildFromArticle(document.getElementById('article').value, seed);
+}
+function buildCompare(seedA, seedB, src){
+  const ga=buildFromText(src, seedA), gb=buildFromText(src, seedB);
+  const map={};
+  const take=(data, side)=>data.nodes.forEach(n=>{
+    let r=map[n.id];
+    if(!r){ r={id:n.id,layer:n.layer,freq:n.freq,v:n.v,kd:n.kd,cpc:n.cpc,opp:n.opp,est:n.est,trend:n.trend,sides:new Set()}; map[n.id]=r; }
+    r.sides.add(side);
+    if(n.opp>r.opp){ r.opp=n.opp; r.v=n.v; r.kd=n.kd; r.cpc=n.cpc; r.est=n.est; }
+    r.freq=Math.max(r.freq, n.freq);
+    if(n.trend && !r.trend) r.trend=n.trend;
+  });
+  take(ga,'A'); take(gb,'B');
+  const nodes=Object.values(map).map(r=>{
+    const side=r.sides.size>1?'both':(r.sides.has('A')?'onlyA':'onlyB');
+    return {id:r.id,layer:r.layer,freq:r.freq,v:r.v,kd:Math.round(r.kd),cpc:+r.cpc.toFixed(2),opp:r.opp,est:r.est,side,community:0,trend:r.trend||null};
+  });
+  const seen=new Set(); const edges=[];
+  [ga,gb].forEach(data=>data.edges.forEach(e=>{ const key=[e.a,e.b].sort().join('|'); if(seen.has(key))return; seen.add(key); edges.push({a:e.a,b:e.b,pmi:e.pmi||0,type:e.type||'rel'}); }));
+  return {nodes, edges};
+}
+
+/* ---------- Step 4 浮现回放：逐层展开动画（结构浮现） ---------- */
+let revealTimer=null;
+function revealPlayback(){
+  if(revealTimer){ clearInterval(revealTimer); revealTimer=null; }
+  clearFocus();
+  const order=['seed','upper','lower','brand','sibling'];
+  const groups={}; graph.nodes.forEach(n=>{ (groups[n.layer]=groups[n.layer]||[]).push(n); });
+  graph.nodes.forEach((n,idx)=>{ if(n.circle)n.circle.setAttribute('opacity',0); if(n.label)n.label.setAttribute('opacity',0); });
+  graph.edges.forEach(e=>e.el.setAttribute('opacity',0));
+  let i=0;
+  revealTimer=setInterval(()=>{
+    const ly=order[i];
+    if(ly && groups[ly]) groups[ly].forEach(n=>{ if(!n.hidden){ if(n.circle)n.circle.setAttribute('opacity',1); if(n.label)n.label.setAttribute('opacity',1); } });
+    graph.edges.forEach(e=>{ if(!e.a.hidden && !e.b.hidden){ const ao=e.a.circle?e.a.circle.getAttribute('opacity'):'0', bo=e.b.circle?e.b.circle.getAttribute('opacity'):'0'; if(ao==='1' && bo==='1') e.el.setAttribute('opacity',(EDGE_STYLE[e.type]||EDGE_STYLE.rel).op); } });
+    i++;
+    if(i>order.length){ clearInterval(revealTimer); revealTimer=null; }
+  },320);
+}
+
+/* =========================================================
+   以下为可视化层（沿用 v0 力导向，节点大小改按机会分）
+   ========================================================= */
+const COLOR={seed:'#A78BFA',upper:'#60A5FA',sibling:'#2DD4BF',lower:'#FBBF24',brand:'#F472B6'};
+const COMPARE_COLOR={onlyA:'#60A5FA',both:'#A78BFA',onlyB:'#FBBF24'};
+let graph={nodes:[],edges:[]}, svg,W,H,cx,cy, selected=null, threshold=1, upOn=true, downOn=true, colorByCommunity=false, compareMode=false, focusNode=null, focusDepth=1;
+/* Step 5 业务闭环状态 */
+let brandPick=false, outputWord=null;
+let sceneWords=['评测','推荐','攻略','避坑','对比','排行榜','平价','高端'];
+const nodeById=id=>graph.nodes.find(n=>n.id===id);
+const currentSeed=()=>document.getElementById('seed').value.trim()||'美妆';
+const LAYER_NAME={seed:'种子词',upper:'上位品类词',lower:'下位长尾词',brand:'品牌词',sibling:'相关词'};
+const PR_RANK={P0:0,P1:1,P2:2};
+const colorOf=l=>COLOR[l]||COLOR.sibling;
+const sizeOf=n=>18+Math.sqrt(n.opp)*2.4;
+function nodeColor(n){ if(compareMode && n.side) return COMPARE_COLOR[n.side]; if(colorByCommunity) return COMM_PALETTE[(n.community||0)%COMM_PALETTE.length]; return colorOf(n.layer); }
+function updateNodeColors(){ graph.nodes.forEach(n=>{ if(n.circle) n.circle.setAttribute('fill', nodeColor(n)); }); }
+/* S2 社群发现：标签传播（Label Propagation），自动聚主题簇 */
+function detectCommunities(){
+  const ns=graph.nodes, es=graph.edges;
+  const label={}; ns.forEach((n,i)=>label[n.id]=i);
+  const adj={}; ns.forEach(n=>adj[n.id]=[]);
+  es.forEach(e=>{ if(adj[e.a.id]&&adj[e.b.id]){ adj[e.a.id].push(e.b.id); adj[e.b.id].push(e.a.id); } });
+  for(let it=0; it<14; it++){
+    const order=[...ns].sort(()=>Math.random()-0.5);
+    order.forEach(n=>{
+      const cnt={}; adj[n.id].forEach(m=>{ const l=label[m]; cnt[l]=(cnt[l]||0)+1; });
+      const keys=Object.keys(cnt);
+      if(keys.length){
+        let max=-1, best=[];
+        keys.forEach(k=>{ const c=cnt[k]; if(c>max){max=c;best=[k];} else if(c===max) best.push(k); });
+        label[n.id]=best[Math.floor(Math.random()*best.length)];
+      }
+    });
+  }
+  const map={}; let ci=0; ns.forEach(n=>{ if(!(label[n.id] in map)) map[label[n.id]]=ci++; });
+  ns.forEach(n=> n.community = map[label[n.id]]);
+  const groups={}; ns.forEach(n=>{ (groups[n.community]=groups[n.community]||[]).push(n); });
+  graph.communities = Object.values(groups).map(arr=>arr.slice().sort((x,y)=>y.opp-x.opp));
+}
+function buildGraph(data){
+  const byId={};
+  graph.nodes=data.nodes.map(n=>({...n,x:cx+(Math.random()-0.5)*220,y:cy+(Math.random()-0.5)*220,vx:0,vy:0,el:null,circle:null,label:null,hidden:false}));
+  graph.nodes.forEach(n=>byId[n.id]=n);
+  graph.edges=data.edges.filter(e=>byId[e.a]&&byId[e.b]).map(e=>({a:byId[e.a],b:byId[e.b],el:null}));
+  detectCommunities();
+  render();
+}
+function render(){
+  svg.innerHTML='';
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+  defs.innerHTML=`<pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#FFFFFF" fill-opacity="0.05"/></pattern><radialGradient id="glow"><stop offset="0%" stop-color="#A78BFA" stop-opacity="0.22"/><stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/></radialGradient>`;
+  svg.appendChild(defs);
+  const bg=document.createElementNS('http://www.w3.org/2000/svg','rect'); bg.setAttribute('width','100%');bg.setAttribute('height','100%');bg.setAttribute('fill','url(#dots)'); svg.appendChild(bg);
+  const glow=document.createElementNS('http://www.w3.org/2000/svg','rect'); glow.setAttribute('width','100%');glow.setAttribute('height','100%');glow.setAttribute('fill','url(#glow)'); svg.appendChild(glow);
+  graph.edges.forEach(e=>{
+    const st=EDGE_STYLE[e.type]||EDGE_STYLE.rel;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('stroke', st.color); line.setAttribute('stroke-opacity', st.op); line.setAttribute('stroke-width', st.w);
+    if(st.dash) line.setAttribute('stroke-dasharray', st.dash);
+    e.el=line; line.setAttribute('class','edge'); svg.appendChild(line);
+  });
+  graph.nodes.forEach(n=>{
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('class','node'); g.style.cursor='pointer'; g.style.animationDelay=(idx*0.02)+'s';
+    const r=sizeOf(n);
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('r',r); c.setAttribute('fill',nodeColor(n)); c.setAttribute('stroke','#FFFFFF'); c.setAttribute('stroke-opacity',0.3); c.setAttribute('stroke-width',1);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('text-anchor','middle'); t.setAttribute('y',r+14);
+    t.setAttribute('font-size', n.layer==='seed'?15:12); t.setAttribute('font-weight', n.layer==='seed'?700:500); t.setAttribute('fill','#E6EDF2');
+    const trendMark = n.trend==='up'?'▲ ':n.trend==='down'?'▼ ':n.trend==='new'?'● ':'';
+    t.textContent=trendMark+n.id;
+    g.appendChild(c); g.appendChild(t);
+    const sig=signalOf(n.id);
+    if(sig){
+      const b=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      b.setAttribute('class','sig-badge ' + sig.heat);
+      const off=r*0.71+3;
+      b.setAttribute('cx', off); b.setAttribute('cy', -off); b.setAttribute('r', 5);
+      b.setAttribute('fill', sig.heat==='green'?'#2ECC71':(sig.heat==='yellow'?'#FBBF24':'#E74C3C'));
+      b.setAttribute('stroke','#0B0E14'); b.setAttribute('stroke-width',1.5);
+      g.appendChild(b);
+      n.sigEl=b;
+    }
+    g.addEventListener('click',ev=>{ev.stopPropagation();select(n);});
+    g.addEventListener('mousedown',ev=>startDrag(ev,n));
+    n.el=g; n.circle=c; n.label=t; svg.appendChild(g);
+  });
+  updateVisibility();
+  applySigView();
+}
+function updateVisibility(){
+  graph.nodes.forEach(n=>{
+    const vis=n.freq>=threshold && (n.layer!=='upper'||upOn) && (n.layer!=='lower'||downOn) && (n.layer!=='brand'||downOn) && (n.layer!=='sibling'||downOn);
+    n.el.style.display=vis?'':'none'; n.hidden=!vis;
+  });
+  graph.edges.forEach(e=>e.el.style.display=(e.a.hidden||e.b.hidden)?'none':'');
+  renderRank();
+  renderCommunities();
+  renderOutput();
+}
+function tick(){
+  const ns=graph.nodes;
+  for(let i=0;i<ns.length;i++){ const a=ns[i]; if(a.fixed)continue;
+    for(let j=0;j<ns.length;j++){ if(i===j)continue; const b=ns[j]; let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy+0.01; const f=2800/d2,d=Math.sqrt(d2); a.vx+=dx/d*f; a.vy+=dy/d*f; }
+    a.vx+=(cx-a.x)*0.012; a.vy+=(cy-a.y)*0.012;
+  }
+  graph.edges.forEach(e=>{ let dx=e.b.x-e.a.x,dy=e.b.y-e.a.y,d=Math.sqrt(dx*dx+dy*dy)+0.01; const rest=130,f=(d-rest)*0.02,fx=dx/d*f,fy=dy/d*f; if(!e.a.fixed){e.a.vx+=fx;e.a.vy+=fy;} if(!e.b.fixed){e.b.vx-=fx;e.b.vy-=fy;} });
+  ns.forEach(n=>{ if(n.fixed)return; n.vx*=0.85;n.vy*=0.85; n.x+=n.vx*0.4;n.y+=n.vy*0.4; n.x=Math.max(40,Math.min(W-40,n.x)); n.y=Math.max(40,Math.min(H-40,n.y)); });
+  graph.edges.forEach(e=>{e.el.setAttribute('x1',e.a.x);e.el.setAttribute('y1',e.a.y);e.el.setAttribute('x2',e.b.x);e.el.setAttribute('y2',e.b.y);});
+  ns.forEach(n=>n.el.setAttribute('transform',`translate(${n.x},${n.y})`));
+  requestAnimationFrame(tick);
+}
+let dragNode=null;
+function startDrag(ev,n){ dragNode=n; n.fixed=true; const r=svg.getBoundingClientRect(); n.x=ev.clientX-r.left; n.y=ev.clientY-r.top; }
+document.addEventListener('mousemove',ev=>{ if(dragNode){const r=svg.getBoundingClientRect(); dragNode.x=ev.clientX-r.left; dragNode.y=ev.clientY-r.top;} });
+document.addEventListener('mouseup',()=>{ if(dragNode){dragNode.fixed=false;dragNode=null;} });
+svg && svg.addEventListener('click',()=>select(null));
+/* 聚焦模式：按 N 度邻居淡化非相关节点与边 */
+function applyFocus(){
+  if(!focusNode || focusDepth<=0){ clearFocus(); return; }
+  const adj={}; graph.nodes.forEach(n=>adj[n.id]=[]);
+  graph.edges.forEach(e=>{ if(adj[e.a.id]&&adj[e.b.id]){ adj[e.a.id].push(e.b.id); adj[e.b.id].push(e.a.id); } });
+  const keep=new Set([focusNode.id]); let frontier=[focusNode.id];
+  for(let d=0; d<focusDepth; d++){ const next=[]; frontier.forEach(id=>adj[id].forEach(m=>{ if(!keep.has(m)){ keep.add(m); next.push(m); } })); frontier=next; }
+  graph.nodes.forEach(n=>{ const dim=keep.has(n.id)?1:0.12; if(n.circle)n.circle.setAttribute('opacity',dim); if(n.label)n.label.setAttribute('opacity',dim); });
+  graph.edges.forEach(e=>{ const vis=keep.has(e.a.id)&&keep.has(e.b.id); e.el.setAttribute('opacity', vis?(EDGE_STYLE[e.type]||EDGE_STYLE.rel).op:0.06); });
+}
+function clearFocus(){ focusNode=null; graph.nodes.forEach(n=>{ if(n.circle)n.circle.setAttribute('opacity',1); if(n.label)n.label.setAttribute('opacity',1); }); graph.edges.forEach(e=>{ e.el.setAttribute('opacity',(EDGE_STYLE[e.type]||EDGE_STYLE.rel).op); }); }
+function select(n){
+  selected=n;
+  graph.nodes.forEach(x=>{ if(x.circle) x.circle.setAttribute('stroke-width', x===n?3:1); });
+  const d=document.getElementById('detail');
+  if(!n){ d.innerHTML='<div class="empty">点击图谱中任意节点，查看搜索量 / 竞争度 / 商业价值 / 机会分。</div>'; clearFocus(); return; }
+  const ln={seed:'种子词',upper:'上位品类词',lower:'下位长尾词',brand:'品牌词',sibling:'相关词'}[n.layer];
+  const neigh=graph.edges.filter(e=>e.a===n).map(e=>e.b).concat(graph.edges.filter(e=>e.b===n).map(e=>e.a));
+  const fbActive = focusNode===n ? focusDepth : -1;
+  d.innerHTML=`
+    <div class="kw" style="color:${colorOf(n.layer)}">${n.id}</div>
+    <div class="meta"><span class="chip">${ln}</span><span class="chip">词频 ${n.freq}</span>${n.trend?`<span class="chip">趋势 ${n.trend==='up'?'↑升':n.trend==='down'?'↓降':'●新'}</span>`:''}</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="k">月搜索量 V</div><div class="v">${n.v.toLocaleString()}${n.est?'<span class="est">估算</span>':''}</div></div>
+      <div class="metric"><div class="k">竞争度 KD</div><div class="v">${n.kd}</div></div>
+      <div class="metric"><div class="k">商业价值 CPC</div><div class="v">¥${n.cpc}${n.est?'<span class="est">估算</span>':''}</div></div>
+      <div class="metric"><div class="k">机会分</div><div class="v" style="color:${n.opp>=50?'#FBBF24':'#E6EDF2'}">${n.opp}</div></div>
+    </div>
+    ${visibleSignal(n.id)?(()=>{const s=visibleSignal(n.id);const heatTxt=s.heat==='green'?'可信':(s.heat==='yellow'?'需复核':'需核验');return `
+    <div class="sig-block">
+      <div class="sig-title"><span class="sig-dot-inline ${s.heat}"></span>真实信号 · ${heatTxt}</div>
+      ${s.platforms.length?`<div class="sig-platforms">${s.platforms.map(p=>`<span class="sig-pf">${p}</span>`).join('')}</div>`:'<div class="sig-verdict">平台覆盖不足（登录墙/网页无索引）</div>'}
+      ${s.note?`<div class="sig-verdict">${s.note}</div>`:''}
+      <div class="sig-verdict">对比估算：图谱 V=${n.v.toLocaleString()} / KD=${n.kd} / CPC=¥${n.cpc}${n.est?'（估算）':''}</div>
+    </div>`;})():''}
+    <div class="empty" style="margin-top:2px">关联词（点击跳转）：</div>
+    <div class="neigh">${neigh.map(x=>`<span class="tag" data-id="${x.id}" style="border-color:${colorOf(x.layer)}">${x.id}</span>`).join('')||'<span class="empty">暂无</span>'}</div>
+    <div class="focus-bar">
+      <button data-d="1" class="${fbActive===1?'active':''}">聚焦 1度</button>
+      <button data-d="2" class="${fbActive===2?'active':''}">聚焦 2度</button>
+      <button data-d="0" class="${fbActive===0?'active':''}">全部</button>
+    </div>`;
+  d.querySelectorAll('.tag').forEach(t=>t.addEventListener('click',()=>{ const tg=graph.nodes.find(x=>x.id===t.dataset.id); if(tg)select(tg); }));
+  d.querySelectorAll('.focus-bar button').forEach(b=>b.addEventListener('click',()=>{
+    const dd=+b.dataset.d;
+    if(dd===0){ clearFocus(); } else { focusNode=n; focusDepth=dd; applyFocus(); }
+    d.querySelectorAll('.focus-bar button').forEach(x=>x.classList.remove('active'));
+    if(dd>0){ const btn=d.querySelector('.focus-bar button[data-d="'+dd+'"]'); if(btn)btn.classList.add('active'); }
+  }));
+  if(focusNode) applyFocus();
+  outputWord = n ? n.id : null;
+  renderOutput();
+}
+function renderRank(){
+  const list=graph.nodes.filter(n=>!n.hidden).slice().sort((a,b)=>b.opp-a.opp).slice(0,8);
+  const max=list.length?list[0].opp:1;
+  document.getElementById('rank').innerHTML=list.map(n=>`
+    <div class="rank-item"><span class="nm">${n.id}</span><span class="bar"><span style="width:${n.opp/max*100}%;background:${colorOf(n.layer)}"></span></span><span class="num">${n.opp}</span></div>`).join('');
+}
+function renderCommunities(){
+  const comms=(graph.communities||[]).filter(g=>g.some(n=>!n.hidden));
+  const box=document.getElementById('communities');
+  if(!comms.length){ box.innerHTML='<div class="empty">暂无社群</div>'; return; }
+  box.innerHTML = comms.map((g,i)=>{
+    const col=COMM_PALETTE[i%COMM_PALETTE.length];
+    const top=g.filter(n=>!n.hidden).slice(0,6).map(n=>`<span class="comm-chip">${n.id}</span>`).join('');
+    return `<div class="comm-block"><div class="comm-head"><span class="comm-dot" style="background:${col}"></span>主题簇 ${i+1} · ${g.filter(n=>!n.hidden).length} 词</div><div class="neigh">${top}</div></div>`;
+  }).join('');
+}
+/* =========================================================
+   Step 5 业务闭环：选题清单 / 内容大纲 / 内链建议 / TDK / 导出
+   ========================================================= */
+
+/* S5.1 选题清单引擎：机会分阈值 + 层位过滤 + P0/P1/P2 分级 + 建议角度 */
+function buildTopicList(){
+  const seed=currentSeed();
+  const list=graph.nodes.filter(n=>!n.hidden && n.id!==seed && n.opp>=50)
+    .filter(n=>n.layer==='lower'||n.layer==='sibling'||(brandPick&&n.layer==='brand'))
+    .map(n=>{
+      let prio;
+      if(n.layer==='lower'&&n.opp>=70) prio='P0';
+      else if(n.layer==='lower'&&n.opp>=50) prio='P1';
+      else if(n.layer==='sibling'&&n.opp>=70) prio='P1';
+      else prio='P2';
+      const comm=(graph.communities||[])[n.community]||[];
+      const others=comm.filter(m=>m.id!==n.id&&m.id!==seed).sort((a,b)=>b.opp-a.opp).slice(0,2).map(m=>m.id);
+      const base=n.layer==='brand'?'竞品':(n.layer==='lower'?'长尾':'相关');
+      const angle=others.length?`${base} · ${others.join('/')}`:base;
+      return {id:n.id, opp:n.opp, prio, angle};
+    })
+    .sort((a,b)=>PR_RANK[a.prio]-PR_RANK[b.prio] || b.opp-a.opp);
+  return list;
+}
+
+/* S5.2 内容大纲引擎：选中词 → H1 + 动态 2–6 个 H2 + 每节 H3 长尾 + 内链锚点 */
+function neighborsOf(n){
+  const out=[]; const seen=new Set();
+  graph.edges.forEach(e=>{
+    if(e.a===n&&!seen.has(e.b.id)){seen.add(e.b.id);out.push(e.b);}
+    if(e.b===n&&!seen.has(e.a.id)){seen.add(e.a.id);out.push(e.a);}
+  });
+  return out;
+}
+function buildOutline(word){
+  const n=nodeById(word); if(!n) return null;
+  const adj=neighborsOf(n).filter(x=>!x.hidden&&x.id!==word);
+  const h2=adj.slice().sort((a,b)=>b.opp-a.opp).slice(0,Math.max(2,Math.min(6,adj.length)));
+  const md=[`# ${word}（${LAYER_NAME[n.layer]||''}）`,`> 机会分 ${n.opp} · 月搜索 ${n.v.toLocaleString()} · 竞争度 KD ${n.kd}`];
+  h2.forEach((x,i)=>{
+    md.push('',`## ${i+1}. ${x.id}`);
+    const subs=neighborsOf(x).filter(s=>!s.hidden&&s.id!==word&&s.id!==x.id&&(s.layer==='lower'||s.layer==='sibling')).sort((a,b)=>b.opp-a.opp).slice(0,3);
+    subs.forEach(s=>md.push(`- ${s.id}（机会分 ${s.opp}）`));
+    md.push(`- 内链锚点：${x.id}`);
+  });
+  md.push('',`> 建议字数：${h2.length*500} 字左右`);
+  return md.join('\n');
+}
+
+/* S5.3 内链引擎（演示模式：节点虚拟文章；CSV 加「对应关键词」列后切真实模式） */
+function buildLinks(){
+  const seed=currentSeed();
+  const links=[]; const seen=new Set();
+  const push=(from,to,anchor,rel,reason)=>{ if(from===to)return; const k=from+'|'+to; if(seen.has(k))return; seen.add(k); links.push({from,to,anchor,rel,reason}); };
+  graph.edges.forEach(e=>{
+    const a=e.a, b=e.b;
+    if(e.type==='hypo'){ const lower=a.id===seed?b:a; push(lower.id,seed,seed,'细分→概览','下位长尾链入种子核心页，聚合权重'); }
+    else if(e.type==='hyper'){ const up=a.id===seed?b:a; push(up.id,seed,seed,'概览→核心','品类页回链种子核心页'); }
+    else if(e.type==='brand'){ const br=a.id===seed?b:a; push(br.id,seed,seed,'品牌→品类','品牌词文章链向品类词，承接泛流量'); }
+    else if(e.type==='comp'){ push(a.id,b.id,b.id,'竞品互链','比较型读者在两篇间流转，提升停留时长'); }
+  });
+  return links.slice(0,10);
+}
+
+/* S5.4 TDK 模板引擎：标题候选（主词×场景词）+ 描述 + 关键词 */
+function buildTDK(word){
+  const n=nodeById(word); if(!n) return null;
+  const seed=currentSeed();
+  const titles=sceneWords.map(s=>`${word}${s}`).filter(t=>t.length<=24).slice(0,4);
+  if(titles.length<3) titles.push(`${word}：${n.v>=15000?'热门赛道':'冷门机会'}，值得做吗？`);
+  const longs=graph.nodes.filter(x=>x.id!==word&&x.id!==seed&&!x.hidden&&(x.layer==='lower'||x.layer==='sibling')).sort((a,b)=>b.opp-a.opp).slice(0,2).map(x=>x.id);
+  const desc=`${word}怎么选？本文拆解${longs[0]||'价格'}、${longs[1]||'口碑'}、${seed}等关键维度，帮你避坑并快速决策。`;
+  const kws=[word].concat(longs,[seed]).filter((v,i,a)=>a.indexOf(v)===i).slice(0,6);
+  return {titles, desc, kws};
+}
+
+/* S5.5 渲染与导出 */
+function renderTopicList(){
+  const box=document.getElementById('topicList'); if(!box) return;
+  const list=buildTopicList();
+  if(!list.length){ box.innerHTML='<div class="empty">暂无满足机会分 ≥ 50 的选题词——可降低低频阈值、换种子词，或打开「竞品拦截」。</div>'; return; }
+  box.innerHTML=list.slice(0,12).map(x=>`
+    <div class="topic-item" data-id="${x.id}">
+      <span class="prio ${x.prio.toLowerCase()}">${x.prio}</span>
+      <span style="flex:1">${x.id}</span>
+      <span style="color:var(--text-secondary);font-size:10px">${x.opp}</span>
+    </div>`).join('');
+  box.querySelectorAll('.topic-item').forEach(el=>el.addEventListener('click',()=>{
+    const tg=nodeById(el.dataset.id); if(!tg) return;
+    outputWord=tg.id; select(tg); renderOutput();
+  }));
+}
+function renderOutline(){
+  const box=document.getElementById('outline'); if(!box) return;
+  const word=outputWord||(buildTopicList()[0]||{}).id;
+  const md=word?buildOutline(word):null;
+  if(!md){ box.innerHTML='<div class="empty">生成图谱后，点选选题词或图谱节点，自动生成大纲。</div>'; return; }
+  box.innerHTML=`<div class="outline-pre">${md.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div><button class="copy-btn" id="copyOutline">复制大纲</button>`;
+  const btn=document.getElementById('copyOutline');
+  if(btn) btn.onclick=()=>copyText(md,btn);
+}
+function renderLinks(){
+  const box=document.getElementById('linkSuggest'); if(!box) return;
+  const links=buildLinks();
+  if(!links.length){ box.innerHTML='<div class="empty">暂无内链建议（需要上位/下位/品牌/竞品关系边，先点「生成关键词地图」）。</div>'; return; }
+  box.innerHTML=links.map(l=>`
+    <div class="link-item">
+      <div><span style="color:var(--seed)">${l.from}</span> → ${l.to} <span class="chip">${l.rel}</span></div>
+      <div class="rt">锚文本「${l.anchor}」· ${l.reason}</div>
+    </div>`).join('');
+}
+function renderTDK(){
+  const box=document.getElementById('tdk'); if(!box) return;
+  const word=outputWord||(buildTopicList()[0]||{}).id;
+  const t=word?buildTDK(word):null;
+  if(!t){ box.innerHTML='<div class="empty">选中词后生成标题 / 描述 / 关键词。</div>'; return; }
+  box.innerHTML=`
+    <div class="tdk-label">标题候选</div>
+    ${t.titles.map(x=>`<div class="tdk-title">${x}</div>`).join('')}
+    <div class="tdk-label">Meta 描述</div>
+    <div class="tdk-desc">${t.desc}</div>
+    <div class="tdk-label">关键词</div>
+    <div class="neigh">${t.kws.map(k=>`<span class="tag">${k}</span>`).join('')}</div>`;
+}
+function renderOutput(){ renderTopicList(); renderOutline(); renderLinks(); renderTDK(); }
+function downloadFile(name, content, mime){
+  const blob=new Blob([content],{type:mime});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+}
+function fallbackCopy(txt){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); }
+function copyText(txt,btn){
+  const done=()=>{ if(btn){ const old=btn.textContent; btn.textContent='已复制 ✓'; setTimeout(()=>{btn.textContent=old;},1200); } };
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(()=>{ fallbackCopy(txt); done(); });
+  else { fallbackCopy(txt); done(); }
+}
+
+/* 控件绑定（Step 5） */
+const brandEl=document.getElementById('brandPick');
+if(brandEl) brandEl.onclick=()=>{ brandEl.classList.toggle('off'); brandPick=!brandEl.classList.contains('off'); renderOutput(); };
+const sceneEl=document.getElementById('sceneWords');
+if(sceneEl) sceneEl.onchange=()=>{ sceneWords=sceneEl.value.split(/[,，、\s]+/).filter(Boolean); renderTDK(); };
+document.querySelectorAll('#rightTabs .tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('#rightTabs .tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  const r=t.dataset.rtab;
+  document.getElementById('rtab-detail').style.display=r==='detail'?'':'none';
+  document.getElementById('rtab-comm').style.display=r==='comm'?'':'none';
+  document.getElementById('rtab-output').style.display=r==='output'?'':'none';
+});
+document.getElementById('expCSV').onclick=()=>{
+  const list=buildTopicList(); if(!list.length) return;
+  const head=['优先级','关键词','机会分','月搜索量','竞争度KD','CPC','层位','建议角度'];
+  const rows=list.map(x=>{ const n=nodeById(x.id); return [x.prio,x.id,n.opp,n.v,n.kd,n.cpc,LAYER_NAME[n.layer]||n.layer,x.angle]; });
+  const csv='\ufeff'+[head].concat(rows).map(r=>r.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  downloadFile('选题清单.csv', csv, 'text/csv;charset=utf-8');
+};
+document.getElementById('expJSON').onclick=()=>{
+  const payload={exportedAt:new Date().toISOString(), seed:currentSeed(),
+    nodes:graph.nodes.map(n=>({id:n.id,layer:n.layer,v:n.v,kd:n.kd,cpc:n.cpc,opp:n.opp,est:n.est,community:n.community,trend:n.trend||null})),
+    edges:graph.edges.map(e=>({a:e.a.id,b:e.b.id,type:e.type})),
+    topics:buildTopicList(), links:buildLinks()};
+  downloadFile('关键词星图数据.json', JSON.stringify(payload,null,2), 'application/json');
+};
+document.getElementById('expMD').onclick=()=>{
+  const word=outputWord||(buildTopicList()[0]||{}).id;
+  const md=word?buildOutline(word):null;
+  if(md) copyText(md);
+};
+
+/* 控件 */
+function bindToggle(id){ const el=document.getElementById(id); el.onclick=()=>{ el.classList.toggle('off'); const on=!el.classList.contains('off'); if(id==='up')upOn=on; if(id==='down')downOn=on; updateVisibility(); }; }
+bindToggle('up'); bindToggle('down'); bindToggle('stop');
+const commEl=document.getElementById('comm');
+commEl.onclick=()=>{ commEl.classList.toggle('off'); colorByCommunity=!commEl.classList.contains('off'); updateNodeColors(); };
+document.querySelectorAll('#srcTabs .tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('#srcTabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
+  const src=t.dataset.src;
+  document.getElementById('panel-article').style.display = src==='article'?'':'none';
+  document.getElementById('panel-db').style.display = src==='db'?'':'none';
+});
+document.getElementById('generate').onclick=()=>{
+  const seed=document.getElementById('seed').value.trim()||'美妆';
+  const src=document.querySelector('.tab.active').dataset.src;
+  let data;
+  if(compareMode){
+    const seedB=document.getElementById('seedB').value.trim();
+    if(!seedB || seedB===seed){ document.getElementById('dbStat').innerHTML='<span style="color:#FBBF24">对比词需不同于种子词。</span>'; return; }
+    data=buildCompare(seed, seedB, src);
+  } else if(src==='article'){
+    data=buildFromArticle(document.getElementById('article').value, seed);
+  } else {
+    const t=(document.getElementById('csvText').value||'').trim();
+    if(!t){ document.getElementById('dbStat').innerHTML='<span style="color:#FBBF24">请先上传或粘贴 CSV 再生成。</span>'; return; }
+    data=buildFromDataset(t, seed);
+    if(!data){ document.getElementById('dbStat').innerHTML='<span style="color:#FBBF24">未解析到有效词，检查格式。</span>'; return; }
+    document.getElementById('dbStat').innerHTML=`已解析 <b style="color:#E6EDF2">${data.stat.total}</b> 个词，其中 ${data.stat.withMetric} 个带搜索量指标。`;
+  }
+  buildGraph(data); select(null);
+};
+document.getElementById('sigLoad').onclick=loadBuiltinSignals;
+document.getElementById('sigClear').onclick=clearSignals;
+document.getElementById('sigText').addEventListener('input', importSignalsFromText);
+document.getElementById('sigText').addEventListener('change', importSignalsFromText);
+function setCompareUI(on){
+  compareMode=on;
+  document.getElementById('baseLegend').classList.toggle('hidden', on);
+  document.getElementById('cmpLegend').classList.toggle('show', on);
+  document.getElementById('cmpSeedWrap').classList.toggle('show', on);
+  document.getElementById('cmpBtn').classList.toggle('active', on);
+}
+document.getElementById('cmpBtn').onclick=()=>setCompareUI(!compareMode);
+document.getElementById('reveal').onclick=()=>revealPlayback();
+const slider=document.getElementById('slider'),fill=document.getElementById('sliderFill'),thumb=document.getElementById('sliderThumb'),val=document.getElementById('sliderVal');
+function setSlider(px){ const w=slider.clientWidth||248; px=Math.max(0,Math.min(w,px)); threshold=Math.round(px/w*10); fill.style.width=px+'px'; thumb.style.left=(px-7)+'px'; val.innerHTML='词频 &lt; '+threshold+' 自动隐藏'; updateVisibility(); }
+setSlider((slider.clientWidth||248)*0.1); let sDrag=false;
+slider.addEventListener('mousedown',e=>{sDrag=true;setSlider(e.offsetX);});
+document.addEventListener('mousemove',e=>{if(sDrag){const r=slider.getBoundingClientRect();setSlider(e.clientX-r.left);}});
+document.addEventListener('mouseup',()=>sDrag=false);
+document.getElementById('search').addEventListener('input',e=>{ const q=e.target.value.trim(); graph.nodes.forEach(n=>{ if(!n.circle)return; const hit=!q||n.id.includes(q); n.circle.setAttribute('opacity',hit?1:0.18); if(n.label)n.label.setAttribute('opacity',hit?1:0.18); }); });
+document.getElementById('export').onclick=()=>{ const blob=new Blob(['<?xml version="1.0" encoding="UTF-8"?>'+svg.outerHTML],{type:'image/svg+xml'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='关键词星图.svg'; a.click(); };
+/* 数据库上传：文件选择 + 拖拽 */
+const fileInput=document.getElementById('file');
+if(fileInput){
+  document.getElementById('pickBtn').onclick=()=>fileInput.click();
+  const uploadBox=document.getElementById('uploadBox');
+  fileInput.onchange=e=>{ const f=e.target.files[0]; if(f) readDatasetFile(f); };
+  ['dragover','dragenter'].forEach(ev=>uploadBox.addEventListener(ev,e=>{e.preventDefault();uploadBox.classList.add('drag');}));
+  ['dragleave'].forEach(ev=>uploadBox.addEventListener(ev,e=>{e.preventDefault();uploadBox.classList.remove('drag');}));
+  uploadBox.addEventListener('drop',e=>{e.preventDefault();uploadBox.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)readDatasetFile(f);});
+}
+function readDatasetFile(f){
+  const rd=new FileReader();
+  rd.onload=()=>{ document.getElementById('csvText').value=rd.result; document.getElementById('dbStat').innerHTML='已读取 <b style="color:#E6EDF2">'+f.name+'</b>，点击「生成关键词地图」解析（编码 UTF-8）。'; };
+  rd.onerror=()=>{ document.getElementById('dbStat').innerHTML='<span style="color:#FBBF24">读取失败，请重试。</span>'; };
+  rd.readAsText(f,'utf-8');
+}
+function init(){ svg=document.getElementById('stage'); const area=svg.parentElement; W=area.clientWidth;H=area.clientHeight;cx=W/2;cy=H/2; svg.setAttribute('viewBox',`0 0 ${W} ${H}`); loadBuiltinSignals(); buildGraph(buildFromArticle(document.getElementById('article').value,'美妆')); tick(); }
+window.addEventListener('resize',()=>{const area=svg.parentElement;W=area.clientWidth;H=area.clientHeight;cx=W/2;cy=H/2;});
+init();
+</script>
+</body>
+</html>
